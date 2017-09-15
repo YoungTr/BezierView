@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StickyBezierViewStyle">
+        <attr name="color" format="color" />
+        <attr name="fixCircleRadius" format="dimension" />
+        <attr name="dragCircleRadius" format="dimension" />
+        <attr name="circleOffset" format="dimension" />
+    </declare-styleable>
+</resources>

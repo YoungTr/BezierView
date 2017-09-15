@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -20,9 +21,9 @@ public class BezierSimpleView extends View {
     private Paint mLinePaint;
     private Path mPath = new Path();
 
-    private FPoint mStartPoint = new FPoint();
-    private FPoint mEndPoint = new FPoint();
-    private FPoint mQuadPoint = new FPoint();
+    private PointF mStartPoint = new PointF();
+    private PointF mEndPoint = new PointF();
+    private PointF mQuadPoint = new PointF();
 
     public BezierSimpleView(Context context) {
         this(context, null);

@@ -15,13 +15,16 @@ import android.view.View;
 import android.view.animation.LinearInterpolator;
 
 /**
- * Created by Administrator on 2017/9/12.
+ * Created by YoungTr on 2017/9/12.
+ * BezierWaveView
  */
 
 public class BezierWaveView extends View implements View.OnClickListener {
 
     public static final int DEFAULT_WAVE_LENGTH = 1000;
     public static final int DEFAULT_WAVE_Y_OFFSET = 60;
+    private static final String GRADIENT_START_COLOR = "#0000F5FF";
+    private static final String GRADIENT_END_COLOR = "#BF00F5FF";
 
     private Paint mWavePaint;
     private Path mPath;
@@ -66,7 +69,7 @@ public class BezierWaveView extends View implements View.OnClickListener {
         mHeight = h;
         mWaveCount = (int) Math.round(mWidth / mWaveLength + 1.5);
         mCenterY = mHeight - DEFAULT_WAVE_Y_OFFSET;
-        LinearGradient lg = new LinearGradient(0, 0, 0, mHeight, Color.parseColor("#0000F5FF"), Color.parseColor("#BF00F5FF"), Shader.TileMode.CLAMP);// CLAMP重复最后一个颜色至最后
+        LinearGradient lg = new LinearGradient(0, 0, 0, mHeight, Color.parseColor(GRADIENT_START_COLOR), Color.parseColor(GRADIENT_END_COLOR), Shader.TileMode.CLAMP);// CLAMP重复最后一个颜色至最后
         mWavePaint.setShader(lg);
     }
 

@@ -107,7 +107,7 @@ public class GeometryUtil {
         return NEGATIVE_NOE / caculateSlope(p1, p2);
     }
 
-    public static PointF[] getCutPointF(PointF circleCenter, PointF controlPoint, float radius) {
+    public static PointF[] getCutPointFFix(PointF circleCenter, PointF controlPoint, float radius) {
         PointF[] pointFs = new PointF[2];
         float distanceToFix = GeometryUtil.getDistanceBetween2Points(circleCenter, controlPoint);
         double acosFix = Math.acos(radius / distanceToFix);
@@ -122,4 +122,18 @@ public class GeometryUtil {
         return pointFs;
     }
 
+    public static PointF[] getCutPointFDrag(PointF circleCenter, PointF controlPoint, float radius) {
+        PointF[] pointFs = new PointF[2];
+        float distanceToFix = GeometryUtil.getDistanceBetween2Points(circleCenter, controlPoint);
+        double acosFix = Math.acos(radius / distanceToFix);
+        double acosSlope = Math.acos((controlPoint.y - circleCenter.y) / distanceToFix);
+        float offsetX1 = (float) (radius * Math.sin(acosFix - acosSlope));
+        float offsetY1 = (float) (radius * Math.cos(acosFix - acosSlope));
+        double c = Math.acos((controlPoint.y - circleCenter.y) / distanceToFix);
+        float offsetX2 = (float) (radius * Math.sin(acosFix - c));
+        float offsetY2 = (float) (radius * Math.cos(acosFix - c));
+        pointFs[0] = new PointF(circleCenter.x - offsetX1, circleCenter.y + offsetY1);
+        pointFs[1] = new PointF(circleCenter.x + offsetX2, circleCenter.y + offsetY2);
+        return pointFs;
+    }
 }

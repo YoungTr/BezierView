@@ -7,8 +7,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.youngtr.library.Utils.GeometryUtil;
@@ -20,8 +23,8 @@ import com.youngtr.library.Utils.GeometryUtil;
 
 public class StickyBezierView extends View {
 
-    private static final float DEFAULT_FIX_CIRCLE_RADIUS = 15.0F;
-    private static final float DEFAULT_DRAG_CIRCLE_RADIUS = 20.0F;
+    private static final float DEFAULT_FIX_CIRCLE_RADIUS = 20.0F;
+    private static final float DEFAULT_DRAG_CIRCLE_RADIUS = 30.0F;
     private static final float DEFAULT_CIRCLE_OFFSET = 75.0F;
 
     private static final int DEFAULT_COLOR = Color.RED;
@@ -41,6 +44,8 @@ public class StickyBezierView extends View {
     private float mCircleOffset = DEFAULT_CIRCLE_OFFSET;
 
     private int mColor;
+
+    private boolean isTouched;
 
     public StickyBezierView(Context context) {
         this(context, null);
@@ -77,31 +82,71 @@ public class StickyBezierView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-
         mFixCircleCenter.x = getWidth() / 2;
         mFixCircleCenter.y = getHeight() / 2 - mCircleOffset;
 
         mDragCircleCenter.x = getWidth() / 2;
-        mDragCircleCenter.y = getHeight() / 2 + mCircleOffset;
+        mDragCircleCenter.y = getHeight() / 2 - mCircleOffset;
+    }
+
+    private void calculate() {
         mControlPoint = GeometryUtil.getMiddlePoint(mFixCircleCenter, mDragCircleCenter);
-        mFixCutPoints = GeometryUtil.getCutPointF(mFixCircleCenter, mControlPoint, mFixCircleRadius);
-        mDragCutPoints = GeometryUtil.getCutPointF(mDragCircleCenter, mControlPoint, mDragCircleRadius);
+        double antiSlope = GeometryUtil.caculateAntiSlope(mFixCircleCenter, mDragCircleCenter);
+        mFixCutPoints = GeometryUtil.getIntersectionPoints(mFixCircleCenter, mFixCircleRadius, antiSlope);
+        mDragCutPoints = GeometryUtil.getIntersectionPoints(mDragCircleCenter, mDragCircleRadius, antiSlope);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        calculate();
+        Log.d("StickyBezierView", "isTouched:" + isTouched);
         mPath.reset();
-        //draw circle
-        canvas.drawCircle(mFixCircleCenter.x, mFixCircleCenter.y, mFixCircleRadius, mPaint);
-        canvas.drawCircle(mDragCircleCenter.x, mDragCircleCenter.y, mDragCircleRadius, mPaint);
-        //draw path;
-        mPath.moveTo(mFixCutPoints[0].x, mFixCutPoints[0].y);
-        mPath.lineTo(mFixCutPoints[1].x, mFixCutPoints[1].y);
-        mPath.quadTo(mControlPoint.x, mControlPoint.y, mDragCutPoints[1].x, mDragCutPoints[1].y);
-        mPath.lineTo(mDragCutPoints[0].x, mDragCutPoints[0].y);
-        mPath.quadTo(mControlPoint.x, mControlPoint.y, mFixCutPoints[0].x, mFixCutPoints[0].y);
-        mPath.close();
-        canvas.drawPath(mPath, mPaint);
+        if (isTouched) {
+            //draw circle
+            canvas.drawCircle(mFixCircleCenter.x, mFixCircleCenter.y, mFixCircleRadius, mPaint);
+            canvas.drawCircle(mDragCircleCenter.x, mDragCircleCenter.y, mDragCircleRadius, mPaint);
+            //draw path;
+            mPath.moveTo(mFixCutPoints[0].x, mFixCutPoints[0].y);
+            mPath.lineTo(mFixCutPoints[1].x, mFixCutPoints[1].y);
+            mPath.quadTo(mControlPoint.x, mControlPoint.y, mDragCutPoints[1].x, mDragCutPoints[1].y);
+            mPath.lineTo(mDragCutPoints[0].x, mDragCutPoints[0].y);
+            mPath.quadTo(mControlPoint.x, mControlPoint.y, mFixCutPoints[0].x, mFixCutPoints[0].y);
+            mPath.close();
+            canvas.drawPath(mPath, mPaint);
+        } else {
+            //draw circle
+            canvas.drawCircle(mFixCircleCenter.x, mFixCircleCenter.y, mFixCircleRadius, mPaint);
+            canvas.drawCircle(getWidth() / 2, getHeight() / 2 - mCircleOffset, mDragCircleRadius, mPaint);
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                Rect rect = new Rect();
+                rect.left = (int) (mDragCircleCenter.x - mDragCircleRadius);
+                rect.right = (int) (mDragCircleCenter.x + mDragCircleRadius);
+                rect.top = (int) (mDragCircleCenter.y - mDragCircleRadius);
+                rect.bottom = (int) (mDragCircleCenter.y + mDragCircleRadius);
+                if (rect.contains((int) event.getX(), (int) event.getY())) {
+                    isTouched = true;
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                mDragCircleCenter.x = (int) event.getX();
+                mDragCircleCenter.y = (int) event.getY();
+                invalidate();
+                break;
+            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_UP:
+                isTouched = false;
+                mDragCircleCenter.x = getWidth() / 2;
+                mDragCircleCenter.y = getHeight() / 2 - mCircleOffset;
+                invalidate();
+                break;
+        }
+        return true;
     }
 }
